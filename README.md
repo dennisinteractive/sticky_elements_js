@@ -4,5 +4,5 @@ Using our native Drupal Module (https://github.com/dennisinteractive/sticky_elem
 
 ## Sticky Variable
 
-var stickyElements is used to define the array of sticky elements. 
+`var stickyElements` is used to define the array of sticky elements. 
 
