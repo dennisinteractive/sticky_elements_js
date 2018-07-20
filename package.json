@@ -1,0 +1,32 @@
+{
+  "name": "sticky_elements_js",
+  "version": "1.0.0",
+  "babel": {
+    "presets": [
+      "env",
+      "minify"
+    ]
+  },
+  "description": "Provides context reaction to make any element on the page sticky",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel js --out-dir dist",
+    "watch": "babel js --out-dir dist --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dennisinteractive/sticky_elements_js.git"
+  },
+  "author": "Ross Howard",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dennisinteractive/sticky_elements_js/issues"
+  },
+  "homepage": "https://github.com/dennisinteractive/sticky_elements_js#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-minify": "^0.4.3"
+  }
+}
