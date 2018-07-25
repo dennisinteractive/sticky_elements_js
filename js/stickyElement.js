@@ -33,11 +33,11 @@
       type,
       typeValue
     ) {
-      console.log('scrollPos: ' + window.scrollY);
-      console.log('startPos: ' + startPos);
-      console.log('sOffset: ' + sOffset);
-      console.log('sTime: ' + sTime);
-      console.log('typeValue: ' + typeValue);
+      // console.log('scrollPos: ' + window.scrollY);
+      // console.log('startPos: ' + startPos);
+      // console.log('sOffset: ' + sOffset);
+      // console.log('sTime: ' + sTime);
+      // console.log('typeValue: ' + typeValue);
       // Setting the elements width to a defined value so that it
       // does not resize itself when it becomes Fixed.
       sElement.style.width = width + 'px';
@@ -47,35 +47,35 @@
         //based on action
         switch (type) {
           case 'offset':
-            console.log('offset type');
+            // console.log('offset type');
             if (window.scrollY > sOffset) {
-              console.log('past offset');
+              // console.log('past offset');
               elementAbsolute(sElement, height, width, type, typeValue);
             }
           break;
           case 'timeout':
-            console.log('timeout');
+            // console.log('timeout');
             setTimeout(function(){
-              console.log('TIME UP');
+              // console.log('TIME UP');
               window.addEventListener('scroll', function() {
                 elementUnStick(sElement);
               });
             }, sTime);
             break;
           case 'element':
-            console.log('element type', sElement, sOffset);
+            // console.log('element type', sElement, sOffset);
             let endPos = document.querySelectorAll( sOffset )[0];
-            console.log({endPos});
+            // console.log({endPos});
             if (window.scrollY > endPos.offsetTop) {
-              console.log('Element absolute');
-              elementAbsolute(sElement, height, width, type, endPos);
+              // console.log('Element absolute');
+              elementAbsolute(sElement, type, endPos, positionX);
             }
             break;
         }
       }
       else {
         // above trigger so make unsticky
-        console.log('scroll position above element');
+        // console.log('scroll position above element');
         elementUnStick(sElement);
       }
     }
@@ -91,11 +91,9 @@
       sElement.style.position = 'static';
     }
 
-    function elementAbsolute(sElement, height, width, type, endPos) {
-      let topOffset = (document.body.getBoundingClientRect().top - height) * -1;
-      console.log(topOffset);
+    function elementAbsolute(sElement, type, endPos, positionX) {
       sElement.style.position = 'absolute';
-      sElement.style.left = width + 'px';
+      sElement.style.left = positionX + 'px';
 
       //conditional top position based on element type
         // element
@@ -105,6 +103,7 @@
         // offset
         if (type == 'offset') {
           sElement.style.top = endPos + 'px';
+
         }
     }
 
@@ -113,7 +112,6 @@
       let type = item['type'];
       // Define the sticky element.
       let sElement = document.querySelectorAll( item['sticky_element'] )[0];
-      // let startPos = sElement.offsetTop;
       let startPos = sElement.getBoundingClientRect().top;
       let height = sElement.getBoundingClientRect().height;
       let width = sElement.getBoundingClientRect().width;
