@@ -20,7 +20,6 @@
       };
     };
 
-
     // Perform actions based on scroll position
     function detectSticky(
       sElement,
@@ -33,13 +32,9 @@
       type,
       typeValue
     ) {
-      // console.log('scrollPos: ' + window.scrollY);
-      // console.log('startPos: ' + startPos);
-      // console.log('sOffset: ' + sOffset);
-      // console.log('sTime: ' + sTime);
-      // console.log('typeValue: ' + typeValue);
       // Setting the elements width to a defined value so that it
-      // does not resize itself when it becomes Fixed.
+      // does not resize itself when it becomes Fixed as a result of it's
+      // given width being a % value.
       sElement.style.width = width + 'px';
       // Make sticky
       if (window.scrollY > startPos) {
@@ -47,27 +42,20 @@
         //based on action
         switch (type) {
           case 'offset':
-            // console.log('offset type');
             if (window.scrollY > sOffset) {
-              // console.log('past offset');
               elementAbsolute(sElement, height, width, type, typeValue);
             }
           break;
           case 'timeout':
-            // console.log('timeout');
             setTimeout(function(){
-              // console.log('TIME UP');
               window.addEventListener('scroll', function() {
                 elementUnStick(sElement);
               });
             }, sTime);
             break;
           case 'element':
-            // console.log('element type', sElement, sOffset);
             let endPos = document.querySelectorAll( sOffset )[0];
-            // console.log({endPos});
             if (window.scrollY > endPos.offsetTop) {
-              // console.log('Element absolute');
               elementAbsolute(sElement, type, endPos, positionX);
             }
             break;
@@ -75,7 +63,6 @@
       }
       else {
         // above trigger so make unsticky
-        // console.log('scroll position above element');
         elementUnStick(sElement);
       }
     }
@@ -125,7 +112,6 @@
       let sOffset = item[type];
       let sTime = (item[type]);
       let typeValue = item[type];
-
 
       // Scroll Event Listener
       window.addEventListener('scroll', debounce(function(){detectSticky(
