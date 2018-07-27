@@ -69,7 +69,7 @@ var StickyElements = function(options = {}) {
           console.log({endPos});
           if (window.scrollY > endPos.offsetTop) {
             console.log('Element absolute');
-            elementAbsolute(sElement, height, width, type, endPos);
+            elementAbsolute(sElement, height, positionX, type, endPos);
           }
           break;
       }
@@ -92,11 +92,11 @@ var StickyElements = function(options = {}) {
     sElement.style.position = 'static';
   }
 
-  var elementAbsolute = function(sElement, height, width, type, endPos) {
+  var elementAbsolute = function(sElement, height, positionX, type, endPos) {
     let topOffset = (document.body.getBoundingClientRect().top - height) * -1;
     console.log(topOffset);
     sElement.style.position = 'absolute';
-    sElement.style.left = width + 'px';
+    sElement.style.left = positionX + 'px';
 
     //conditional top position based on element type
       // element
