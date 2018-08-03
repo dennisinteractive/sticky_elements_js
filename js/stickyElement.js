@@ -6,144 +6,128 @@ var StickyElements = function(options = {}) {
   // First we define which elements are sticky. This can be specified per environment
   var stickyElements = config.elements;
 
-  // debounce functionality - limit executions of scroll
-  var debounce = function(func, wait = 5, immediate = true) {
-    var timeout;
-    return function() {
-      var context = this, args = arguments;
-      var later = function() {
-        timeout = null;
-        if (!immediate) func.apply(context, args);
-      };
-      var callNow = immediate && !timeout;
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-      if (callNow) func.apply(context, args);
-    };
-  };
+  // throttle functionality - limit executions of scroll
+  var tick = false;
+  function throttle(fn, params) {
+    if (!tick) {
+      window.requestAnimationFrame(function() {
+        fn(params);
+        tick = false;
+      });
+      tick = true;
+    }
+  }
 
   // Perform actions based on scroll position
-  var detectSticky = function(
-    sElement,
-    startPos,
-    sOffset,
-    height,
-    width,
-    positionX,
-    sTime,
-    type,
-    typeValue
-  ) {
-    console.log('scrollPos: ' + window.scrollY);
-    console.log('startPos: ' + startPos);
-    console.log('sOffset: ' + sOffset);
-    console.log('sTime: ' + sTime);
-    console.log('typeValue: ' + typeValue);
+  var detectSticky = function(item) {
+    let { element, value, bounds, type } = item;
+    
+    //console.log("do");
     // Setting the elements width to a defined value so that it
     // does not resize itself when it becomes Fixed.
-    sElement.style.width = width + 'px';
+    element.style.width = bounds.width + 'px';
     // Make sticky
-    if (window.scrollY > startPos) {
-      elementStick(sElement, positionX);
+    if (window.scrollY > bounds.x) {
+      elementStick(item.element, item.top, item.bounds);
       //based on action
       switch (type) {
         case 'offset':
-          console.log('offset type');
-          if (window.scrollY > sOffset) {
-            console.log('past offset');
-            elementAbsolute(sElement, height, width, type, typeValue);
+          if (window.scrollY > value + bounds.x) {
+            elementAbsolute(item);
           }
         break;
         case 'timeout':
-          console.log('timeout');
           setTimeout(function(){
-            console.log('TIME UP');
             window.addEventListener('scroll', function() {
-              elementUnStick(sElement);
+              elementUnStick(element);
             });
-          }, sTime);
+          }, value);
           break;
         case 'element':
-          console.log('element type', sElement, sOffset);
-          let endPos = document.querySelectorAll( sOffset )[0];
-          console.log({endPos});
+          let endPos = document.querySelectorAll( value )[0];
           if (window.scrollY > endPos.offsetTop) {
-            console.log('Element absolute');
-            elementAbsolute(sElement, height, positionX, type, endPos);
+            elementAbsolute(element, bounds.height, left, type, endPos);
           }
           break;
       }
     }
     else {
       // above trigger so make unsticky
-      console.log('scroll position above element');
-      elementUnStick(sElement);
+      elementUnStick(element);
     }
   }
 
-  var elementStick = function(sElement, positionX) {
-    sElement.style.position = 'fixed';
-    sElement.style.zIndex = '100';
-    sElement.style.top = 0;
-    sElement.style.left = positionX + 'px';
+  var elementStick = function(element, top, bounds) {
+    element.style = null;
+
+    element.style.position = 'fixed';
+    element.style.zIndex = '100';
+    element.style.top = top + 'px';
+    element.style.left = bounds.left + 'px';
+    element.style.width = bounds.width + 'px';
+
+    showElementPlaceholder(element);
   }
 
-  var elementUnStick = function(sElement) {
-    sElement.style.position = 'static';
+  var elementUnStick = function(element) {
+    element.style.position = 'static';
+
+    hideElementPlaceholder(element);
   }
 
-  var elementAbsolute = function(sElement, height, positionX, type, endPos) {
-    let topOffset = (document.body.getBoundingClientRect().top - height) * -1;
-    console.log(topOffset);
-    sElement.style.position = 'absolute';
-    sElement.style.left = positionX + 'px';
+  var elementAbsolute = function(item) {
+    let { element, value, bounds, top } = item;
+    element.style = null;
 
-    //conditional top position based on element type
-      // element
-      if (type == 'element') {
-        sElement.style.top = endPos.offsetTop - endPos.clientHeight + sElement.clientHeight + 'px';
-      }
-      // offset
-      if (type == 'offset') {
-        sElement.style.top = endPos + 'px';
-      }
+    let left = bounds.left - item.parent.bounds.x; // For position absolute minus the parent left
+
+    element.style.position = 'absolute';
+    element.style.zIndex = '100';
+    element.style.transform = 'translateY(' + (value + bounds.height - top) + 'px)';
+    element.style.left = left + 'px';
+  }
+
+  function elementPlaceholder(element, bounds) {
+    let placeholder = document.createElement('div');
+    let cs = window.getComputedStyle(element,null);
+    placeholder.classList.add('sticky-element-placeholder');
+    placeholder.style.height = cs.getPropertyValue('height');
+    placeholder.style.width = cs.getPropertyValue('width');
+    placeholder.style.display = 'none';
+    element.insertAdjacentElement('beforebegin', placeholder);
+  }
+
+  function showElementPlaceholder(element){
+    element.previousSibling.style.display = '';
+  }
+
+  function hideElementPlaceholder(element) {
+    element.previousSibling.style.display = 'none';
+  }
+
+  function getElementPlaceholderBounds(element) {
+    return element.previousSibling.getBoundingClientRect();
   }
 
   // Iterate over elements
   var init = function() {
     stickyElements.forEach(function(item){
-      let type = item['type'];
-      // Define the sticky element.
-      let sElement = document.querySelectorAll( item['sticky_element'] )[0];
-      // let startPos = sElement.offsetTop;
-      let startPos = sElement.getBoundingClientRect().top;
-      let height = sElement.getBoundingClientRect().height;
-      let width = sElement.getBoundingClientRect().width;
-      let right = sElement.getBoundingClientRect().right;
-      let positionX = right - width;
+      item.element = document.querySelector(item.sticky_element);
+      item.bounds = item.element.getBoundingClientRect();
+      item.value = item[item.type];
+      item.parent = item.element.parentElement;
+      item.parent.bounds = item.parent.getBoundingClientRect();
+
+      elementPlaceholder(item.element, item.bounds);
 
       // Add a class to sticky elements to allow for site level styling (if needed).
-      sElement.classList.add('sticky-element');
+      item.element.classList.add('sticky-element');
 
       // Call event listener on each sticky element
-      let sOffset = item[type];
-      let sTime = (item[type]);
-      let typeValue = item[type];
-
-
       // Scroll Event Listener
-      window.addEventListener('scroll', debounce(function(){detectSticky(
-        sElement, 
-        startPos, 
-        sOffset, 
-        height, 
-        width, 
-        positionX, 
-        sTime, 
-        type, 
-        typeValue
-      )}));
-      return positionX;
+      window.addEventListener('scroll', function(){
+        throttle(detectSticky, item);
+      });
     });
   }
 

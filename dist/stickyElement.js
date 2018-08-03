@@ -1,1 +1,149 @@
-'use strict';var StickyElements=function(){var a=0<arguments.length&&arguments[0]!==void 0?arguments[0]:{},b=Object.assign({},{},a),c=b.elements,d=function(a){var b,c=1<arguments.length&&arguments[1]!==void 0?arguments[1]:5,d=!(2<arguments.length&&arguments[2]!==void 0)||arguments[2];return function(){var e=this,f=arguments,g=d&&!b;clearTimeout(b),b=setTimeout(function c(){b=null,d||a.apply(e,f)},c),g&&a.apply(e,f)}},e=function(a,b,c,d,e,i,j,k,l){if(console.log('scrollPos: '+window.scrollY),console.log('startPos: '+b),console.log('sOffset: '+c),console.log('sTime: '+j),console.log('typeValue: '+l),a.style.width=e+'px',window.scrollY>b)switch(f(a,i),k){case'offset':console.log('offset type'),window.scrollY>c&&(console.log('past offset'),h(a,d,e,k,l));break;case'timeout':console.log('timeout'),setTimeout(function(){console.log('TIME UP'),window.addEventListener('scroll',function(){g(a)})},j);break;case'element':console.log('element type',a,c);var m=document.querySelectorAll(c)[0];console.log({endPos:m}),window.scrollY>m.offsetTop&&(console.log('Element absolute'),h(a,d,e,k,m));}else console.log('scroll position above element'),g(a)},f=function(a,b){a.style.position='fixed',a.style.zIndex='100',a.style.top=0,a.style.left=b+'px'},g=function(a){a.style.position='static'},h=function(a,b,c,d,e){var f=-1*(document.body.getBoundingClientRect().top-b);console.log(f),a.style.position='absolute',a.style.left=c+'px','element'==d&&(a.style.top=e.offsetTop-e.clientHeight+a.clientHeight+'px'),'offset'==d&&(a.style.top=e+'px')};return{config:b,init:function a(){c.forEach(function(a){var b=a.type,c=document.querySelectorAll(a.sticky_element)[0],f=c.getBoundingClientRect().top,g=c.getBoundingClientRect().height,h=c.getBoundingClientRect().width,i=c.getBoundingClientRect().right,j=i-h;c.classList.add('sticky-element');var k=a[b],l=a[b],m=a[b];return window.addEventListener('scroll',d(function(){e(c,f,k,g,h,j,l,b,m)})),j})}}};
+'use strict';
+
+var StickyElements = function StickyElements() {
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+
+  var defaults = {};
+  var config = Object.assign({}, defaults, options);
+
+  // First we define which elements are sticky. This can be specified per environment
+  var stickyElements = config.elements;
+
+  // throttle functionality - limit executions of scroll
+  var tick = false;
+  function throttle(fn, params) {
+    if (!tick) {
+      window.requestAnimationFrame(function () {
+        fn(params);
+        tick = false;
+      });
+      tick = true;
+    }
+  }
+
+  // Perform actions based on scroll position
+  var detectSticky = function detectSticky(item) {
+    var element = item.element,
+        value = item.value,
+        bounds = item.bounds,
+        type = item.type;
+
+    //console.log("do");
+    // Setting the elements width to a defined value so that it
+    // does not resize itself when it becomes Fixed.
+
+    element.style.width = bounds.width + 'px';
+    // Make sticky
+    if (window.scrollY > bounds.x) {
+      elementStick(item.element, item.top, item.bounds);
+      //based on action
+      switch (type) {
+        case 'offset':
+          if (window.scrollY > value + bounds.x) {
+            elementAbsolute(item);
+          }
+          break;
+        case 'timeout':
+          setTimeout(function () {
+            window.addEventListener('scroll', function () {
+              elementUnStick(element);
+            });
+          }, value);
+          break;
+        case 'element':
+          var endPos = document.querySelectorAll(value)[0];
+          if (window.scrollY > endPos.offsetTop) {
+            elementAbsolute(element, bounds.height, left, type, endPos);
+          }
+          break;
+      }
+    } else {
+      // above trigger so make unsticky
+      elementUnStick(element);
+    }
+  };
+
+  var elementStick = function elementStick(element, top, bounds) {
+    element.style = null;
+
+    element.style.position = 'fixed';
+    element.style.zIndex = '100';
+    element.style.top = top + 'px';
+    element.style.left = bounds.left + 'px';
+    element.style.width = bounds.width + 'px';
+
+    showElementPlaceholder(element);
+  };
+
+  var elementUnStick = function elementUnStick(element) {
+    element.style.position = 'static';
+
+    hideElementPlaceholder(element);
+  };
+
+  var elementAbsolute = function elementAbsolute(item) {
+    var element = item.element,
+        value = item.value,
+        bounds = item.bounds,
+        top = item.top;
+
+    element.style = null;
+
+    var left = bounds.left - item.parent.bounds.x; // For position absolute minus the parent left
+
+    element.style.position = 'absolute';
+    element.style.zIndex = '100';
+    element.style.transform = 'translateY(' + (value + bounds.height - top) + 'px)';
+    element.style.left = left + 'px';
+  };
+
+  function elementPlaceholder(element, bounds) {
+    var placeholder = document.createElement('div');
+    var cs = window.getComputedStyle(element, null);
+    placeholder.classList.add('sticky-element-placeholder');
+    placeholder.style.height = cs.getPropertyValue('height');
+    placeholder.style.width = cs.getPropertyValue('width');
+    placeholder.style.display = 'none';
+    element.insertAdjacentElement('beforebegin', placeholder);
+  }
+
+  function showElementPlaceholder(element) {
+    element.previousSibling.style.display = '';
+  }
+
+  function hideElementPlaceholder(element) {
+    element.previousSibling.style.display = 'none';
+  }
+
+  function getElementPlaceholderBounds(element) {
+    return element.previousSibling.getBoundingClientRect();
+  }
+
+  // Iterate over elements
+  var init = function init() {
+    stickyElements.forEach(function (item) {
+      item.element = document.querySelector(item.sticky_element);
+      item.bounds = item.element.getBoundingClientRect();
+      item.value = item[item.type];
+      item.parent = item.element.parentElement;
+      item.parent.bounds = item.parent.getBoundingClientRect();
+
+      elementPlaceholder(item.element, item.bounds);
+
+      // Add a class to sticky elements to allow for site level styling (if needed).
+      item.element.classList.add('sticky-element');
+
+      // Call event listener on each sticky element
+      // Scroll Event Listener
+      window.addEventListener('scroll', function () {
+        throttle(detectSticky, item);
+      });
+    });
+  };
+
+  return {
+    config: config,
+    init: init
+  };
+};
