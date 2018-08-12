@@ -160,13 +160,11 @@ var StickyElements = {
             // Only add the stuck class if out element is not collapsed such as lazyloaded elements.
             // Otherwise a false positive stuck can be triggered.
             if(event.target.offsetHeight > 0) {
-              console.log("STUCK: ", event.target);
               event.target.classList.add('is-stuck');
             }
           });
          
           target.addEventListener(StickyEvent.UNSTUCK, (event) => {
-            console.log("UNSTUCK: ", event.target);
             // We dont need to worry about the flase positive for removing the class.
             event.target.classList.remove('is-stuck');
           });
