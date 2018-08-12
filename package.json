@@ -10,8 +10,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel js --out-dir dist",
-    "watch": "babel js --out-dir dist --watch"
+    "build": "webpack",
+    "watch": "webpack --watch"
   },
   "repository": {
     "type": "git",
@@ -25,7 +25,13 @@
   "homepage": "https://github.com/dennisinteractive/sticky_elements_js#readme",
   "devDependencies": {
     "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.5",
     "babel-preset-env": "^1.7.0",
-    "babel-preset-minify": "^0.4.3"
-  }
+    "babel-preset-minify": "^0.4.3",
+    "sticky-events": "^2.0.0",
+    "webpack": "^4.16.5",
+    "webpack-cli": "^3.1.0"
+  },
+  "dependencies": {}
 }
