@@ -153,15 +153,20 @@ var StickyElements = {
           // Add events for each position:sticky element. Uses the sticky-events class by default. 
           target.classList.add('sticky-events');
 
-          element.target.addEventListener(StickyEvent.STUCK, (event) => {
+          target.addEventListener(StickyEvent.STUCK, (event) => {
+            // Make sure the sentinals have position:absolute
+            document.querySelectorAll('.sticky-events--sentinel').forEach(s => s.style.position = 'absolute');
+            
             // Only add the stuck class if out element is not collapsed such as lazyloaded elements.
             // Otherwise a false positive stuck can be triggered.
             if(event.target.offsetHeight > 0) {
+              console.log("STUCK: ", event.target);
               event.target.classList.add('is-stuck');
             }
           });
          
-          element.target.addEventListener(StickyEvent.UNSTUCK, (event) => {
+          target.addEventListener(StickyEvent.UNSTUCK, (event) => {
+            console.log("UNSTUCK: ", event.target);
             // We dont need to worry about the flase positive for removing the class.
             event.target.classList.remove('is-stuck');
           });
@@ -186,7 +191,7 @@ var StickyElements = {
 
     // Observe anything with the sticky-events class
     observeStickyEvents();
-
+    
     window.addEventListener('scroll', this.scrollEndHandler.bind(this), false);
     window.addEventListener('resize', this.reszieEndHandler.bind(this), false);
     window.addEventListener('load', function() { 
