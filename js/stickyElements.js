@@ -214,4 +214,4 @@ var StickyElements = {
   }
 };
 
-module.StickyElements = StickyElements;
+export default StickyElements;
