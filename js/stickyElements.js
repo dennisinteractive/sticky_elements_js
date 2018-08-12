@@ -214,4 +214,4 @@ var StickyElements = {
   }
 };
 
-module.exports = StickyElements;
+module.StickyElements = StickyElements;

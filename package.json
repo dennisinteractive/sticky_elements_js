@@ -7,7 +7,8 @@
     ]
   },
   "description": "Provides context reaction to make any element on the page sticky",
-  "main": "index.js",
+  "main": "./dist/stickyElements.min.js",
+  "module": "./dist/stickyElements.min.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",
