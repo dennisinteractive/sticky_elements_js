@@ -192,25 +192,6 @@ var StickyElements = {
     window.addEventListener('load', function() { 
       window.removeEventListener('scroll', this.scrollEndHandler.bind(this), false);
     }.bind(this));
-
-    googletag.pubads().addEventListener('slotRenderEnded', function(event) {
-      let slotSelector = '#' + event.slot.getSlotElementId();
-      let slotElement = document.querySelector(slotSelector);
-
-      this.config.elements.forEach(element => {
-          let slotChild = element.target.querySelector(slotSelector);
-          
-          if(element.target === slotElement || slotChild){
-            if(element.type !== 'timeout') {
-              this.setHeight(element.parent, element.value);
-            }else{
-              this.setHeight(element.target);
-            }
-            this.setAllEnds(element);
-          }
-      });
-      
-    }.bind(this));
   }
 };
 
