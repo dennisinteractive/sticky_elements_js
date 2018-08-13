@@ -198,4 +198,8 @@ var StickyElements = {
   }
 };
 
-export default StickyElements;
+// Custom event for script loaded
+let event_init = new CustomEvent('sticky-element:load');
+document.dispatchEvent(event_init);
+
+module.exports = StickyElements;

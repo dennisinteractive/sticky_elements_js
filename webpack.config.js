@@ -6,8 +6,8 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, "dist"),
         filename: "stickyElements.min.js",
-        libraryTarget: 'umd',
-        library: 'library'
+        libraryTarget: 'var',
+        library: 'StickyElements'
     },
     watchOptions: {
         poll: 200 // Check for changes every second
