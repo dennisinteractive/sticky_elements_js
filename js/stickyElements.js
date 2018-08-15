@@ -1,4 +1,5 @@
 import { observeStickyEvents, StickyEvent } from 'sticky-events';
+require('intersection-observer');
 
 var StickyElements = {
 
@@ -142,9 +143,14 @@ var StickyElements = {
           // Add styles to the parent container
           parent.style.height = stickyHeight + 'px';
           parent.style.position = 'absolute';
+          parent.style.pointerEvents = 'none';
+
+          // Reinstate pointer events for all children
+          parent.querySelectorAll('*').forEach(e => e.style.pointerEvents = 'initial');
           
           // Add styles to the target
           target.style.top = top + 'px';
+          target.style.position = '-webkit-sticky'; // For Safari
           target.style.position = 'sticky';
                     
           // Ensure that the body does not have an overflow hidden value by setting it to visible
