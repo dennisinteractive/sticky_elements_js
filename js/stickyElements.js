@@ -146,7 +146,7 @@ var StickyElements = {
           parent.style.pointerEvents = 'none';
 
           // Reinstate pointer events for all children
-          parent.querySelectorAll('*').forEach(e => e.style.pointerEvents = 'initial');
+          Array.from(parent.querySelectorAll('*')).forEach(e => e.style.pointerEvents = 'initial');
           
           // Add styles to the target
           target.style.top = top + 'px';
@@ -161,7 +161,7 @@ var StickyElements = {
 
           target.addEventListener(StickyEvent.STUCK, (event) => {
             // Make sure the sentinals have position:absolute
-            document.querySelectorAll('.sticky-events--sentinel').forEach(s => s.style.position = 'absolute');
+            Array.from(document.querySelectorAll('.sticky-events--sentinel')).forEach(s => s.style.position = 'absolute');
             
             // Only add the stuck class if out element is not collapsed such as lazyloaded elements.
             // Otherwise a false positive stuck can be triggered.
