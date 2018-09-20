@@ -15,16 +15,18 @@ var StickyElements = {
     container.appendChild(parent);
   },
 
-  setHeight: function(el, value) {
-    // Remove the previously set parent height so that the browser repaints to the
-    // height of the child items that should have now rendered.
+  setDimensions: function(el, value) {
+    // Remove the previously set parent height/width so that the browser repaints to the
+    // dimensions of the child items that should have now rendered.
     el.style.height = '';
+    el.style.width = '';
 
-    // Recompute the needed height and set it.
+    // Recompute the needed height/width and set it.
     let cs = window.getComputedStyle(el, null);
     el.parentNode.style.height = cs.getPropertyValue('height');
+    el.parentNode.style.width = cs.getPropertyValue('width');
 
-    // Re-add the sticky height for the parent
+    // Re-add only the sticky height for the parent
     if(value) el.style.height = value + 'px';
   },
 
@@ -142,7 +144,6 @@ var StickyElements = {
           let stickyHeight = value - pvalue;
           // Add styles to the parent container
           parent.style.height = stickyHeight + 'px';
-          parent.style.position = 'absolute';
           parent.style.pointerEvents = 'none';
 
           // Reinstate pointer events for all children
