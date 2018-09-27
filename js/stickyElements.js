@@ -125,6 +125,9 @@ var StickyElements = {
       let { sticky_selector, type, top } = element;
 
       element.target = document.querySelector(sticky_selector);
+      if (!element.target) {
+          return;
+      }
       element.parent = element.target.parentElement;
       // Get the offset if element is the type
       element.value = (type === 'element') ? 
