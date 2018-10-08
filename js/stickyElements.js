@@ -3,53 +3,80 @@ require('intersection-observer');
 
 var StickyElements = {
 
-  createContainer: function(parent) {
+  setContainer: function(element){
+    let { target } = element;
     let container = document.createElement('div');
-    let cs = window.getComputedStyle(parent, null);
-
-    container.classList.add('sticky-element-container');
-    container.style.height = cs.getPropertyValue('height');
-    container.style.width = cs.getPropertyValue('width');
-    container.style.position = 'relative';
-    parent.parentNode.insertBefore(container, parent);
-    container.appendChild(parent);
+    target.parentNode.insertBefore(container, target);
+    container.appendChild(target);
   },
 
-  setDimensions: function(el, value) {
-    // Remove the previously set parent height/width so that the browser repaints to the
-    // dimensions of the child items that should have now rendered.
-    el.style.height = '';
-    el.style.width = '';
+  setParent: function(element) {
+    let { parent, type, target } = element;
+    let margin;
 
-    // Recompute the needed height/width and set it.
-    let cs = window.getComputedStyle(el, null);
-    el.parentNode.style.height = cs.getPropertyValue('height');
-    el.parentNode.style.width = cs.getPropertyValue('width');
-
-    // Re-add only the sticky height for the parent
-    if(value) el.style.height = value + 'px';
+    element.height = target.offsetHeight;
+    element.value = this.setValue(element);
+    element.pvalue = this.setParentValue(element);
+    // The sticky height is the difference between the offset to 0 for the target vs
+    // the offset to 0 for the parent.
+    let stickyHeight = element.value - element.pvalue;
+    // Add styles to the parent container
+    parent.style.height = stickyHeight + 'px';
+    parent.style.pointerEvents = 'none';
+    if(type === 'element') {
+      margin = stickyHeight - element.height;
+    }else{
+      margin = stickyHeight;
+    }
+    parent.style.marginBottom = -margin + 'px';
   },
 
-  setAllEnds: function() {
+  unsetParent: function(element) {
+    let { parent } = element;
+    parent.style.height = null;
+    parent.style.marginBottom = null;
+    parent.style.pointerEvents = null;
+  },
+
+  resetParent: function(element) {
+    this.unsetParent(element);
+    this.setParent(element);
+  },
+
+  resetAllParents: function(event) {
     this.config.elements.forEach(element => {
-      if(element.type === 'element') {
-        element.value = document.querySelector(element[element.type]).getBoundingClientRect().y + window.scrollY;
-        element.pvalue = element.parent.getBoundingClientRect().y + window.scrollY;
-        let stickyHeight = element.value - element.pvalue;
-        element.parent.style.height = stickyHeight + 'px';
-      }
+      if(element.type !== "timeout") this.resetParent(element);
     });
   },
 
-  scrollEndHandler: function(event){
-    this.setAllEnds();
+  setValue: function(element) {
+    let { type } = element;
+    return (type === 'element') ? document.querySelector(element[type]).getBoundingClientRect().y + window.scrollY : element[type];
   },
 
-  reszieEndHandler: function(event){
+  setParentValue: function(element) {
+    let { type, parent } = element;
+    return (type === 'element') ? parent.getBoundingClientRect().y + window.scrollY : - element.height;
+  },
+
+  reszieEventHandler: function(event){
     clearTimeout(this.resizeDebounce);
     this.resizeDebounce = setTimeout(function(){
-      this.setAllEnds();
+      this.resetAllParents();
     }.bind(this), 1000);
+  },
+
+  loadEventHandler: function(event){
+    this.setTimeoutTriggers();
+    this.resetAllParents();
+  },
+  
+  setTimeoutTriggers: function() {
+    this.config.elements.forEach(element => {
+      if(element.type === "timeout") {
+        element.trigger = (element.target.getBoundingClientRect().y + window.scrollY) - element.top;
+      }
+    });
   },
 
   scrollTimeoutHandler: function(event){
@@ -58,10 +85,8 @@ var StickyElements = {
 
     this.config.elements.forEach(element => {
       let { target, type, top } = element;
-      
       if(type === 'timeout') {
-        let trigger = (target.parentNode.getBoundingClientRect().y + window.scrollY) - top;
-        if(trigger <= window.scrollY) {
+        if(element.trigger <= window.scrollY) {
           this.stickElement(element);
         }else{
           if(target.classList.contains('is-stuck')) this.unstickElement(element);
@@ -70,23 +95,27 @@ var StickyElements = {
     });
   },
 
-  stickElement: function(element) {
-    let { target, top, value } = element;
-    let cs = window.getComputedStyle(target.parentNode, null);
-    
-    target.style.width = cs.getPropertyValue('width');
-    target.style.top = top + 'px';
-    target.style.position = 'fixed';
-    target.style.zIndex = '10000';
-
-    target.classList.add('is-stuck');
-
+  startTimeout: function(element){
+    let { value } = element;
     if(!element.expire) {
       element.expire = setTimeout(function(){
         this.unstickElement(element);
         this.removeStickyElement(element);
       }.bind(this), value);
     }
+  },
+
+  stickElement: function(element) {
+    let { target, top, type } = element;
+    let cs = window.getComputedStyle(target.parentNode, null);
+    
+    target.style.width = cs.getPropertyValue('width');
+    target.style.top = top + 'px';
+    target.style.position = 'fixed';
+    target.style.zIndex = '100000';
+
+    target.classList.add('is-stuck');
+    if(type === 'timeout') this.startTimeout(element)
   },
 
   unstickElement: function(element) {
@@ -128,29 +157,19 @@ var StickyElements = {
       if (!element.target) {
           return;
       }
-      element.parent = element.target.parentElement;
-      // Get the offset if element is the type
-      element.value = (type === 'element') ? 
-        document.querySelector(element[type]).getBoundingClientRect().y + window.scrollY :
-        element[type];
-      element.pvalue = element.parent.getBoundingClientRect().y + window.scrollY;
 
-      let { target, parent, value, pvalue } = element;
+      let { target } = element;
       target.classList.add('sticky-element');
       
+      if(element.container) this.setContainer(element);
+      element.parent = element.target.parentElement;
+
       switch(type) {
         case 'offset':
         case 'element':
-          this.createContainer(parent);
-          // The sticky height is the difference between the offset to 0 for the target vs
-          // the offset to 0 for the parent.
-          let stickyHeight = value - pvalue;
-          // Add styles to the parent container
-          parent.style.height = stickyHeight + 'px';
-          parent.style.pointerEvents = 'none';
-
+          this.setParent(element);
           // Reinstate pointer events for all children
-          Array.from(parent.querySelectorAll('*')).forEach(e => e.style.pointerEvents = 'initial');
+          Array.from(element.parent.children).forEach(e => e.style.pointerEvents = 'initial');
           
           // Add styles to the target
           target.style.top = top + 'px';
@@ -178,13 +197,23 @@ var StickyElements = {
             // We dont need to worry about the flase positive for removing the class.
             event.target.classList.remove('is-stuck');
           });
-            
+          
           break;
         case 'timeout':
-          this.createContainer(target);
           element.oPos = target.style.position;
           element.oTop = target.style.top;
           element.oZI = target.style.zIndex;
+
+          element.value = this.setValue(element);
+          element.pvalue = this.setParentValue(element);
+
+          this.setTimeoutTriggers();
+
+          if(element.container){
+            element.parent.style.height = element.target.offsetHeight + "px";
+            element.parent.style.width = element.target.offsetWidth + "px";
+            element.parent.style.float = "left";
+          }
 
           window.addEventListener('scroll', this.scrollTimeoutHandler.bind(this), false);
           break;
@@ -192,19 +221,15 @@ var StickyElements = {
           console.log('Invalid type specified.');
       }
 
+      window.addEventListener('resize', this.reszieEventHandler.bind(this), false);
+      window.addEventListener('load', this.loadEventHandler.bind(this), false);
+
       // General target styles we always want.
       target.style.zIndex = '10000';
-      target.style.width = '100%';
     });
 
     // Observe anything with the sticky-events class
     observeStickyEvents();
-    
-    window.addEventListener('scroll', this.scrollEndHandler.bind(this), false);
-    window.addEventListener('resize', this.reszieEndHandler.bind(this), false);
-    window.addEventListener('load', function() { 
-      window.removeEventListener('scroll', this.scrollEndHandler.bind(this), false);
-    }.bind(this));
   }
 };
 
