@@ -106,19 +106,14 @@ var StickyElements = {
   },
 
   stickElement: function(element) {
-    let { target, top, type } = element;
-    // let actualLeft = element.target.getBoundingClientRect().left;
-    let actualWidth = window.getComputedStyle(element.target, null).getPropertyValue('width');
-    target.style.width = actualWidth + 'px';
-
+    let { target, top, type, actualLeft } = element;    
+    console.log('Stick Element: ');
     target.style.top = top + 'px';
-    // target.style.left = actualLeft + 'px';
     target.style.position = 'fixed';
     target.style.zIndex = '100000';
-
+    target.style.left = '50%';
+    element.target.style.marginLeft = -actualLeft + 'px';
     target.classList.add('is-stuck');
-
-    console.log(element, 'startTimeout', target);
     if(type === 'timeout') this.startTimeout(element)
   },
 
@@ -211,12 +206,19 @@ var StickyElements = {
           element.value = this.setValue(element);
           element.pvalue = this.setParentValue(element);
 
+
+          // If I define this functionality here, it repositions it on the page AND again on scroll. 
+          let actualLeft = element.target.getBoundingClientRect().left;
+          let actualWidth = window.getComputedStyle(element.target, null).getPropertyValue('width');
+
+          element.target.style.width = actualWidth;
+          console.log('When its defined: ', actualLeft, actualWidth, element.target, 'Element Target');
+
           this.setTimeoutTriggers();
           if(element.container){
-            element.parent.style.height = actualWidth + "px";
+            element.parent.style.height = element.target.offsetHeight + "px";
             element.parent.style.width = element.target.offsetWidth + "px";
             element.parent.style.float = "left";
-
             // element.target.style.height = element.target.offsetHeight + "px";
             // element.target.style.width = actualWidth + "px";
           }
