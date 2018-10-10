@@ -107,9 +107,14 @@ var StickyElements = {
 
   stickElement: function(element) {
     let { target, top, type } = element;
-    let cs = window.getComputedStyle(target.parentNode, null);
-    
-    target.style.width = cs.getPropertyValue('width');
+    // let cs = window.getComputedStyle(target.parentNode, null);
+    let actualWidth = window.getComputedStyle(element.target, null).getPropertyValue('width');
+    let actualLeft = element.target.getBoundingClientRect().left;
+    target.style.width = actualWidth;
+    target.style.left = actualLeft;
+
+    console.log('stickElement', target, actualWidth, actualLeft);
+
     target.style.top = top + 'px';
     target.style.position = 'fixed';
     target.style.zIndex = '100000';
@@ -208,11 +213,13 @@ var StickyElements = {
           element.pvalue = this.setParentValue(element);
 
           this.setTimeoutTriggers();
-
           if(element.container){
-            element.parent.style.height = element.target.offsetHeight + "px";
+            element.parent.style.height = actualWidth + "px";
             element.parent.style.width = element.target.offsetWidth + "px";
             element.parent.style.float = "left";
+
+            // element.target.style.height = element.target.offsetHeight + "px";
+            // element.target.style.width = actualWidth + "px";
           }
 
           window.addEventListener('scroll', this.scrollTimeoutHandler.bind(this), false);
