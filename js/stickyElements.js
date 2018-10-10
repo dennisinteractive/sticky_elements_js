@@ -107,19 +107,18 @@ var StickyElements = {
 
   stickElement: function(element) {
     let { target, top, type } = element;
-    // let cs = window.getComputedStyle(target.parentNode, null);
+    // let actualLeft = element.target.getBoundingClientRect().left;
     let actualWidth = window.getComputedStyle(element.target, null).getPropertyValue('width');
-    let actualLeft = element.target.getBoundingClientRect().left;
-    target.style.width = actualWidth;
-    target.style.left = actualLeft;
-
-    console.log('stickElement', target, actualWidth, actualLeft);
+    target.style.width = actualWidth + 'px';
 
     target.style.top = top + 'px';
+    // target.style.left = actualLeft + 'px';
     target.style.position = 'fixed';
     target.style.zIndex = '100000';
 
     target.classList.add('is-stuck');
+
+    console.log(element, 'startTimeout', target);
     if(type === 'timeout') this.startTimeout(element)
   },
 
