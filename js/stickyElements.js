@@ -107,13 +107,9 @@ var StickyElements = {
 
   stickElement: function(element) {
     let { target, top, type } = element;    
-    let actualRight = element.target.getBoundingClientRect().right;
     target.style.top = top + 'px';
     target.style.position = 'fixed';
     target.style.zIndex = '100000';
-    target.style.left = '50%';
-    target.style.marginLeft = -actualRight + 'px';
-    // target.style.marginLeft = '-566px';
     target.classList.add('is-stuck');
     if(type === 'timeout') this.startTimeout(element)
   },
